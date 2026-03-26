@@ -2,33 +2,52 @@ from collections import deque
 import numpy as np
 
 class Detector:
-    def __init__(self, max_depth=10):
+    def __init__(self, max_depth=10, reverse_output=True):
         self.max_depth = max_depth
+        self.reverse_output = reverse_output
 
         self.operations = {
             "r": state_rotate,
-            "m": state_mirror,
+            #"m": state_mirror,
             "x": state_mirror_x,
             "y": state_mirror_y,
             "d": state_double,
-            "e": state_edge,
         }
 
     def _state_to_key(self, state):
         return tuple(map(tuple, state))
 
+    def _finalize_operations(self, operations):
+        if operations is None:
+            return None
+
+        ops = operations.copy()
+
+        if len(ops) > 0 and ops[-1] == "n":
+            core = ops[:-1]
+        else:
+            core = ops
+
+        if self.reverse_output:
+            core = core[::-1]
+
+        return core + ["n"]
+
     def detect(self, state, pState):
         bfs_result = self.detect_BFS(state, pState)
         if bfs_result is not None:
-            return bfs_result
+            return self._finalize_operations(bfs_result)
 
         dfs_result = self.detect_DFS(state, pState)
         if dfs_result is not None:
-            return dfs_result
+            return self._finalize_operations(dfs_result)
 
         return None
 
-    def detect_BFS(self, state, pState):
+    def detect_BFS(self, state, pState, max_depth=None):
+        if max_depth is None:
+            max_depth = self.max_depth
+
         if np.array_equal(state, pState):
             return ["n"]
 
@@ -41,7 +60,7 @@ class Detector:
         while queue:
             current_state, operations = queue.popleft()
 
-            if len(operations) >= self.max_depth:
+            if len(operations) >= max_depth:
                 continue
 
             for op_name, op_func in self.operations.items():
@@ -65,7 +84,6 @@ class Detector:
         return None
 
     def detect_DFS(self, state, pState, operations=None, visited=None, depth=0):
-
         if operations is None:
             operations = []
 
@@ -107,7 +125,7 @@ class Detector:
         if result is None:
             return None
         return "".join(result)
-
+    
 class Operation:
     def __init__(self):
         self.operations = {
@@ -120,32 +138,63 @@ class Operation:
             "n": lambda s: s.copy(),
         }
 
-    def print_operations(self):
-        operations = []
-        for op in self.operations:
-            if op != "n":
-                operations.append(f"{op}: {self.operations[op].__name__}")
-        return "\n".join(operations)
-            
+        self.action_operations = {
+            "r": rotate_actions_ccw,
+            "m": mirror_actions,
+            "x": mirror_x_actions,
+            "y": mirror_y_actions,
+            "d": lambda q: q.copy(),
+            "e": lambda q: q.copy(),
+            "n": lambda q: q.copy(),
+        }
 
-    def apply_operations(self, parent_state, operation_list):
-
+    def apply_operations(self, parent_state, operation_list, stored_reversed=True):
         current_state = parent_state.copy()
 
-        for op_code in operation_list:
+        ops = operation_list.copy()
+
+        if len(ops) > 0 and ops[-1] == "n":
+            core = ops[:-1]
+        else:
+            core = ops
+
+        # Wenn gespeichert als reversed, dann vor Anwendung wieder zurückdrehen
+        if stored_reversed:
+            core = core[::-1]
+
+        for op_code in core:
             if op_code not in self.operations:
                 raise ValueError(f"Unbekannte Operation: {op_code}")
-
-            if op_code == "n":
-                break
-
             current_state = self.operations[op_code](current_state)
 
         return current_state
 
-    def apply_operations_from_string(self, parent_state, operation_string):
-        return self.apply_operations(parent_state, list(operation_string))
+    def apply_operations_from_string(self, parent_state, operation_string, stored_reversed=True):
+        return self.apply_operations(parent_state, list(operation_string), stored_reversed=stored_reversed)
 
+    def apply_action_operations(self, parent_q_values, operation_list, stored_reversed=True):
+        current_q = parent_q_values.copy()
+
+        ops = operation_list.copy()
+
+        if len(ops) > 0 and ops[-1] == "n":
+            core = ops[:-1]
+        else:
+            core = ops
+
+        if stored_reversed:
+            core = core[::-1]
+
+        for op_code in core:
+            if op_code not in self.action_operations:
+                raise ValueError(f"Unbekannte Action-Operation: {op_code}")
+            current_q = self.action_operations[op_code](current_q)
+
+        return current_q
+
+    def apply_action_operations_from_string(self, parent_q_values, operation_string, stored_reversed=True):
+        return self.apply_action_operations(parent_q_values, list(operation_string), stored_reversed=stored_reversed)
+    
 def state_rotate(state):
     return np.rot90(state, k=1, axes=(0, 1))
 
@@ -153,10 +202,17 @@ def state_rotate_back(state):
     return np.rot90(state, k=-1, axes=(0, 1))
 
 def state_double(state):
-    return np.add(state, state)
+    doubled_state = state.copy()
+    for i in range(len(doubled_state)):
+        for j in range(len(doubled_state[i])):
+            if doubled_state[i][j] != 0:
+                doubled_state[i][j] *= 2
+    return doubled_state
 
 def state_divide(state):
-    return np.divide(state, 2)
+    divided = state.copy()
+    divided = divided // 2
+    return divided.astype(int)
 
 def state_edge(state):
     
@@ -259,6 +315,36 @@ def state_mirror_x(state):
 
 def state_mirror_y(state):
     return np.fliplr(state)
+
+def rotate_actions_ccw(q_values):
+    return {
+        "up": q_values["right"],
+        "right": q_values["down"],
+        "down": q_values["left"],
+        "left": q_values["up"],
+    }
+
+def mirror_x_actions(q_values):
+    return {
+        "up": q_values["down"],
+        "right": q_values["right"],
+        "down": q_values["up"],
+        "left": q_values["left"],
+    }
+
+def mirror_y_actions(q_values):
+    return {
+        "up": q_values["up"],
+        "right": q_values["left"],
+        "down": q_values["down"],
+        "left": q_values["right"],
+    }
+
+def mirror_actions(q_values):
+    # m = x dann y = 180° Rotation
+    q_values = mirror_x_actions(q_values)
+    q_values = mirror_y_actions(q_values)
+    return q_values
 
 def main():
 

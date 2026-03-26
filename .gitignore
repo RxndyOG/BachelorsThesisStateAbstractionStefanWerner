@@ -205,3 +205,9 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+
+Data/q_table_basic_child_4.csv
+Data/q_table_basic_parent_4.csv
+Data/q_table_basic_reconstructed_4.csv
+Data/q_table_basic_single_4.csv
