@@ -268,6 +268,10 @@ class PlayTester:
             "reached_8": sum(1 for t in highest_tiles if t >= 8),
             "reached_16": sum(1 for t in highest_tiles if t >= 16),
             "reached_32": sum(1 for t in highest_tiles if t >= 32),
+            "reached_64": sum(1 for t in highest_tiles if t >= 64),
+            "reached_128": sum(1 for t in highest_tiles if t >= 128),
+            "reached_256": sum(1 for t in highest_tiles if t >= 256),
+            "reached_512": sum(1 for t in highest_tiles if t >= 512),
         }
 
         return stats
@@ -290,6 +294,11 @@ class PlayTester:
         print(f"Reached tile 8:       {stats['reached_8']} times")
         print(f"Reached tile 16:      {stats['reached_16']} times")
         print(f"Reached tile 32:      {stats['reached_32']} times")
+        print(f"Reached tile 64:      {stats['reached_64']} times")
+        print(f"Reached tile 128:     {stats['reached_128']} times")
+        print(f"Reached tile 256:     {stats['reached_256']} times")
+        print(f"Reached tile 512:     {stats['reached_512']} times")
+        
 
         print("Max reached state:")
         if stats["max_reached_state"] is not None:

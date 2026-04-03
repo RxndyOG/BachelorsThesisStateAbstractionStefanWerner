@@ -1,10 +1,5 @@
 import argparse
 
-from Agents.Agent import run_training
-from Agents.AgentUpdated import run_training_updated
-from Agents.AgentReworked import run_training_reworked
-from Agents.AgentReworked2 import run_training_reworked2
-from Agents.AgentNormalizer import run_training_normalizer
 from Agents.ValueAgentBasic import run_training_basic
 from Agents.PlayerBasic import play
 from Bachelor.MatrixOperation import Detector, Operation
@@ -24,9 +19,9 @@ def run_train(args):
         if args.updated == "False":
             run_training_basic(env=env, episodes=args.episodes, filename=args.file, grid_size=int(args.grid), filepath=args.path, max_depth=args.depth, save_interval=args.save)
         else:
-            run_training_normalizer(env=env, episodes=args.episodes, filename=args.file, grid_size=int(args.grid), filepath=args.path, max_depth=args.depth, save_interval=args.save)
+            pass
     else:
-        run_training(env=env,episodes=args.episodes, filename=args.file, grid_size=int(args.grid), filepath=args.path, max_depth=args.depth, save_interval=args.save)
+        pass
 
 def main():
     parser = argparse.ArgumentParser(description="Matrix Operation Example")
