@@ -2,8 +2,8 @@ import pandas as pd
 
 ACTIONS = ["up", "down", "left", "right"]
 
-reconstructed_path = "./Data/q_table_basic_reconstructed_4.csv"
-original_path = "./Data/q_table_basic_single_4.csv"
+reconstructed_path = "./Data/q_table_basic_reconstructed_2.csv"
+original_path = "./Data/q_table_basic_single_2.csv"
 
 # CSVs korrekt mit ; laden
 reconstructed_data = pd.read_csv(reconstructed_path, sep=";")

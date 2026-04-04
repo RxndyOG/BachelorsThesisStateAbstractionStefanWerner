@@ -1,6 +1,7 @@
 import os
 import csv
 import numpy as np
+import sqlite3
 
 from Bachelor.PreCalculator import PreCalculator
 from Environment.Environment import Environment
@@ -61,6 +62,22 @@ class Agent:
 
     def key_to_state_array(self, state_key):
         return np.array(state_key, dtype=int).reshape(self.size, self.size)
+
+    def state_key_to_str(self, state_key):
+        return ",".join(map(str, state_key))
+
+    def state_str_to_key(self, state_str):
+        return tuple(map(int, state_str.split(",")))
+
+    def create_sqlite_connection(self, db_path):
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        cursor.execute("PRAGMA journal_mode=DELETE;")
+        cursor.execute("PRAGMA synchronous=OFF;")
+        cursor.execute("PRAGMA temp_store=MEMORY;")
+
+        return conn, cursor
 
     # -------------------------------------------------
     # EPSILON
@@ -166,8 +183,11 @@ class Agent:
         with open(full_path, "w", newline="", encoding="utf-8") as file:
             writer = csv.writer(file, delimiter=";")
             writer.writerow(["state", "up", "down", "left", "right"])
-
+            i = 0
             for state_key, action_values in self.q_table.items():
+                i += 1
+                if i % 100 == 0:
+                    print(f"100 lines written to csv from {len(self.q_table)}")
                 state_str = ",".join(map(str, state_key))
                 writer.writerow([state_str] + list(action_values))
 
@@ -232,6 +252,192 @@ class Agent:
             "left": action_values[2],
             "right": action_values[3],
         }
+    
+    def divide_q_table_chunked(
+        self,
+        filepath=None,
+        filename=None,
+        progress_interval=1000,
+        insert_batch_size=5000,
+        keep_index_db=False
+    ):
+        """
+        RAM-schonende Variante von divide_q_table().
+
+        Ablauf:
+        1. Liest die bereits gespeicherte Single-Q-Table CSV zeilenweise.
+        2. Nutzt SQLite als on-disk reachable_lookup.
+        3. Schreibt Parent- und Child-CSV direkt beim Durchlauf.
+
+        Dadurch bleibt die Logik erhalten, aber der RAM-Verbrauch sinkt stark.
+        """
+
+        if filepath is None:
+            filepath = self.filepath
+        if filename is None:
+            filename = self.filename
+
+        os.makedirs(filepath, exist_ok=True)
+
+        single_path = os.path.join(filepath, f"{filename}_single_{self.size}.csv")
+        parent_path = os.path.join(filepath, f"{filename}_parent_{self.size}.csv")
+        child_path = os.path.join(filepath, f"{filename}_child_{self.size}.csv")
+        db_path = os.path.join(filepath, f"{filename}_reachable_index_{self.size}.sqlite")
+
+        if not os.path.exists(single_path):
+            raise FileNotFoundError(
+                f"Single Q-Table not found at: {single_path}\n"
+                f"Save the single Q-table first before dividing."
+            )
+
+        if os.path.exists(db_path):
+            os.remove(db_path)
+
+        conn, cursor = self.create_sqlite_connection(db_path)
+
+        cursor.execute("""
+            CREATE TABLE reachable (
+                state TEXT PRIMARY KEY,
+                parent_index INTEGER NOT NULL,
+                operations TEXT NOT NULL
+            )
+        """)
+        cursor.execute("CREATE INDEX idx_reachable_parent_index ON reachable(parent_index)")
+
+        parent_index_counter = 0
+        child_index_counter = 0
+        pending_reachable = []
+
+        precalc = PreCalculator()
+
+        with open(single_path, "r", newline="", encoding="utf-8") as single_file, \
+             open(parent_path, "w", newline="", encoding="utf-8") as parent_file, \
+             open(child_path, "w", newline="", encoding="utf-8") as child_file:
+
+            reader = csv.DictReader(single_file, delimiter=";")
+            parent_writer = csv.writer(parent_file, delimiter=";")
+            child_writer = csv.writer(child_file, delimiter=";")
+
+            parent_writer.writerow([
+                "index",
+                "state",
+                "up",
+                "down",
+                "left",
+                "right",
+                "direction"
+            ])
+
+            child_writer.writerow([
+                "index",
+                "parent_index",
+                "operations",
+                "direction"
+            ])
+
+            for row_number, row in enumerate(reader, start=1):
+                state_str = row["state"].strip()
+                state_key = self.state_str_to_key(state_str)
+
+                action_values = [
+                    float(row["up"]),
+                    float(row["down"]),
+                    float(row["left"]),
+                    float(row["right"])
+                ]
+
+                cursor.execute(
+                    "SELECT parent_index, operations FROM reachable WHERE state = ?",
+                    (state_str,)
+                )
+                hit = cursor.fetchone()
+
+                # -----------------------------------------
+                # FALL 1: State ist schon erreichbar -> Child
+                # -----------------------------------------
+                if hit is not None:
+                    parent_index, operations = hit
+                    child_best_direction = self.get_best_direction(action_values)
+
+                    child_writer.writerow([
+                        child_index_counter,
+                        parent_index,
+                        operations,
+                        child_best_direction
+                    ])
+                    child_index_counter += 1
+
+                # -----------------------------------------
+                # FALL 2: State ist nicht erreichbar -> Parent
+                # -----------------------------------------
+                else:
+                    parent_best_direction = self.get_best_direction(action_values)
+
+                    parent_writer.writerow([
+                        parent_index_counter,
+                        state_str,
+                        action_values[0],
+                        action_values[1],
+                        action_values[2],
+                        action_values[3],
+                        parent_best_direction
+                    ])
+
+                    parent_state_array = self.key_to_state_array(state_key)
+                    parent_actions_dict = self.action_list_to_dict(action_values)
+
+                    dig_input = [parent_state_array, parent_actions_dict]
+                    dig_results = precalc.dig_deeper(dig_input, max_depth=self.max_depth)
+
+                    for item in dig_results:
+                        operations = item["path"]
+
+                        if operations == "":
+                            continue
+
+                        reachable_state_key = self.state_to_key(item["state"])
+                        reachable_state_str = self.state_key_to_str(reachable_state_key)
+
+                        pending_reachable.append((
+                            reachable_state_str,
+                            parent_index_counter,
+                            operations
+                        ))
+
+                    parent_index_counter += 1
+
+                # Batch-Insert für SQLite
+                if len(pending_reachable) >= insert_batch_size:
+                    cursor.executemany("""
+                        INSERT OR IGNORE INTO reachable (state, parent_index, operations)
+                        VALUES (?, ?, ?)
+                    """, pending_reachable)
+                    conn.commit()
+                    pending_reachable.clear()
+
+                if row_number % progress_interval == 0:
+                    print(
+                        f"[divide_q_table_chunked] processed={row_number}, "
+                        f"parents={parent_index_counter}, children={child_index_counter}"
+                    )
+
+            # Rest flushen
+            if pending_reachable:
+                cursor.executemany("""
+                    INSERT OR IGNORE INTO reachable (state, parent_index, operations)
+                    VALUES (?, ?, ?)
+                """, pending_reachable)
+                conn.commit()
+                pending_reachable.clear()
+
+        cursor.close()
+        conn.close()
+
+        if not keep_index_db and os.path.exists(db_path):
+            os.remove(db_path)
+
+        print(f"Parent Q-Table saved to: {parent_path}")
+        print(f"Child Q-Table saved to: {child_path}")
 
     def divide_q_table(self):
         """
@@ -503,6 +709,150 @@ class Agent:
         values[wanted_direction] = current_best + epsilon
         return values
 
+    def save_q_table_reconstructed_chunked(self, filepath=None, filename=None, keep_parent_db=False):
+        """
+        Rekonstruiert die Q-Table direkt aus Parent- und Child-CSV,
+        ohne p_dict/c_dict komplett im RAM zu halten.
+        """
+        if filepath is None:
+            filepath = self.filepath
+        if filename is None:
+            filename = self.filename
+
+        os.makedirs(filepath, exist_ok=True)
+
+        parent_path = os.path.join(filepath, f"{filename}_parent_{self.size}.csv")
+        child_path = os.path.join(filepath, f"{filename}_child_{self.size}.csv")
+        reconstructed_path = os.path.join(filepath, f"{filename}_reconstructed_{self.size}.csv")
+        parent_db_path = os.path.join(filepath, f"{filename}_parent_lookup_{self.size}.sqlite")
+
+        if not os.path.exists(parent_path):
+            raise FileNotFoundError(f"Parent CSV not found at: {parent_path}")
+        if not os.path.exists(child_path):
+            raise FileNotFoundError(f"Child CSV not found at: {child_path}")
+
+        if os.path.exists(parent_db_path):
+            os.remove(parent_db_path)
+
+        conn, cursor = self.create_sqlite_connection(parent_db_path)
+
+        cursor.execute("""
+            CREATE TABLE parents (
+                parent_index INTEGER PRIMARY KEY,
+                state TEXT NOT NULL,
+                up REAL NOT NULL,
+                down REAL NOT NULL,
+                left REAL NOT NULL,
+                right REAL NOT NULL,
+                direction INTEGER NOT NULL
+            )
+        """)
+
+        # Parents in SQLite laden
+        with open(parent_path, "r", newline="", encoding="utf-8") as parent_file:
+            reader = csv.DictReader(parent_file, delimiter=";")
+            batch = []
+
+            for row in reader:
+                batch.append((
+                    int(row["index"]),
+                    row["state"].strip(),
+                    float(row["up"]),
+                    float(row["down"]),
+                    float(row["left"]),
+                    float(row["right"]),
+                    int(row["direction"])
+                ))
+
+                if len(batch) >= 5000:
+                    cursor.executemany("""
+                        INSERT INTO parents (
+                            parent_index, state, up, down, left, right, direction
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """, batch)
+                    conn.commit()
+                    batch.clear()
+
+            if batch:
+                cursor.executemany("""
+                    INSERT INTO parents (
+                        parent_index, state, up, down, left, right, direction
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, batch)
+                conn.commit()
+                batch.clear()
+
+        # Rekonstruierte CSV schreiben
+        with open(reconstructed_path, "w", newline="", encoding="utf-8") as recon_file:
+            writer = csv.writer(recon_file, delimiter=";")
+            writer.writerow(["state", "up", "down", "left", "right"])
+
+            # 1. Parents direkt schreiben
+            cursor.execute("""
+                SELECT parent_index, state, up, down, left, right, direction
+                FROM parents
+                ORDER BY parent_index
+            """)
+
+            for row in cursor.fetchall():
+                _, state_str, up, down, left, right, _ = row
+                writer.writerow([state_str, up, down, left, right])
+
+            # 2. Children rekonstruieren
+            with open(child_path, "r", newline="", encoding="utf-8") as child_file:
+                child_reader = csv.DictReader(child_file, delimiter=";")
+
+                for i, row in enumerate(child_reader, start=1):
+                    parent_index = int(row["parent_index"])
+                    operations = row["operations"]
+                    wanted_direction = int(row["direction"])
+
+                    cursor.execute("""
+                        SELECT state, up, down, left, right
+                        FROM parents
+                        WHERE parent_index = ?
+                    """, (parent_index,))
+                    parent_row = cursor.fetchone()
+
+                    if parent_row is None:
+                        continue
+
+                    parent_state_str, up, down, left, right = parent_row
+                    parent_state_key = self.state_str_to_key(parent_state_str)
+
+                    parent_state = self.key_to_state_array(parent_state_key)
+                    parent_actions = [up, down, left, right]
+
+                    child_state_array, child_actions = self.apply_operations_to_state_actions(
+                        parent_state,
+                        parent_actions,
+                        operations
+                    )
+
+                    reconstructed_best_direction = self.get_best_direction(child_actions)
+
+                    if reconstructed_best_direction != wanted_direction:
+                        child_actions = self.force_best_direction_minimal_loss(
+                            child_actions,
+                            wanted_direction
+                        )
+
+                    child_state_key = self.state_to_key(child_state_array)
+                    child_state_str = self.state_key_to_str(child_state_key)
+
+                    writer.writerow([child_state_str] + list(child_actions))
+
+                    if i % 5000 == 0:
+                        print(f"[reconstruct] processed children: {i}")
+
+        cursor.close()
+        conn.close()
+
+        if not keep_parent_db and os.path.exists(parent_db_path):
+            os.remove(parent_db_path)
+
+        print(f"Reconstructed Q-Table saved to: {reconstructed_path}")
+
     def build_reconstructed_q_table(self):
         """
         Baut die rekonstruierte Q-Table als dict:
@@ -649,10 +999,9 @@ def run_training_basic(
         if (episode + 1) % save_interval == 0:
             agent.save_q_table_single()
 
-    agent.divide_q_table()
-    agent.save_q_table_parent_child()
     agent.save_q_table_single()
-    agent.save_q_table_reconstructed()
+    agent.divide_q_table_chunked()
+    agent.save_q_table_reconstructed_chunked()
 
 
 def main():
@@ -698,12 +1047,12 @@ def main():
 
         if (episode + 1) % 10 == 0:
             print(f"Episode {episode + 1} completed.")
-            agent.divide_q_table()
-            agent.save_q_table_parent_child()
+            agent.divide_q_table_chunked()
+            agent.save_q_table_reconstructed_chunked()
             agent.save_q_table_single()
 
-    agent.divide_q_table()
-    agent.save_q_table_parent_child()
+    agent.divide_q_table_chunked()
+    agent.save_q_table_reconstructed_chunked()
     agent.save_q_table_single()
 
 

@@ -34,6 +34,16 @@ class Environment():
 
         return next_state, reward, done, info
 
+    def ask_for_action(self):
+        valid_actions = self.find_available_actions()
+        if not valid_actions:
+            return None
+        action = input(f"Enter action ({', '.join(valid_actions)}): ")
+        while action not in valid_actions:
+            print("Invalid action. Please try again.")
+            action = input(f"Enter action ({', '.join(valid_actions)}): ")
+        return action
+
     def get_state(self):
         return self.grid.copy()
 
@@ -197,23 +207,22 @@ class Environment():
 def main():
 
     episodes = 100
-    
-    env = Environment(size=3)
+    env = Environment(size=4)
     env.reset()
-
     total_reward = 0
-
     test = 0
     done = False
     while test == 0:
         test = test + 1
         for i in range(episodes):
 
+            print(env.get_state())
             actions = env.find_available_actions()
             if not actions:
                 print("No actions left")
                 break
-            action = random.choice(actions)
+            #action = random.choice(actions)
+            action = env.ask_for_action()
 
             state ,reward, done, info = env.step(action=action)
 
@@ -221,7 +230,6 @@ def main():
             total_reward += reward
 
             #if env.has_won(16):
-            #    print("You won!")
             #    done = True
 
             if done:
