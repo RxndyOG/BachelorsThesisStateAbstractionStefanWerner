@@ -862,6 +862,20 @@ class Agent:
 
         self.reconstructed_q_table = reconstructed
         return reconstructed
+    
+    def load_q_table_reconstructed(self,filepath="./Data/", filename="q_table_basic"):
+        """
+        Lädt die rekonstruierte Q-Table aus der entsprechenden CSV-Datei.
+        """
+        
+        self.build_reconstructed_q_table()
+        
+        if not self.reconstructed_q_table:
+            raise ValueError("Reconstructed Q-Table is not built yet.")
+
+        self.q_table = self.reconstructed_q_table 
+        
+        self.reconstructed_q_table = {}   
 
 def count_non_zero(state_str):
     """
@@ -896,6 +910,14 @@ def run_training(
     max_depth=5,
     save_interval=10,
 ):
+    
+    # this function is called by the main.py
+    # it loads the q-table, sorts it so the states with zero are on top and then trains on it
+    
+    # the environment is created with the grid size the user wants
+    
+    # then the agent is created. the user can determine what the parameters are in the main.py file 
+    
     """
     Führt ein einfaches Training aus:
 
@@ -924,6 +946,8 @@ def run_training(
     )
 
     agent.load_q_table_single(filepath=filepath, filename=filename)
+
+    agent.load_q_table_reconstructed(filepath=filepath, filename=filename)
 
     sorted_items = sorted(
         agent.q_table.items(),
