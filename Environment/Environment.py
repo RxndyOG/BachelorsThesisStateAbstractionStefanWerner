@@ -204,6 +204,27 @@ class Environment():
     def get_score(self):
         return np.sum(self.grid)
 
+def user_play(size = 4):
+    env = Environment(size=size)
+    env.reset()
+    total_reward = 0
+    done = False
+    while not done:
+        print(env.get_state())
+        actions = env.find_available_actions()
+        if not actions:
+            print("No actions left")
+            break
+        action = env.ask_for_action()
+
+        state ,reward, done, info = env.step(action=action)
+
+        print(f"Action: {action}, Reward: {reward}, Done: {done}")
+        total_reward += reward
+
+    print("Total Score: ",env.get_score())
+    print("Total Reward: ", total_reward)
+
 def main():
 
     episodes = 100

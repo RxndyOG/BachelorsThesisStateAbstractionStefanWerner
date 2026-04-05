@@ -22,17 +22,75 @@ def state_divide(state):
     return divided.astype(int)
 
 
+def state_mirror_horizontal(state):
+    """
+    Spiegelt links <-> rechts
+    Beispiel:
+    [[2, 4],
+     [8,16]]
+    ->
+    [[4, 2],
+     [16,8]]
+    """
+    return np.fliplr(state).astype(int)
+
+
+def state_mirror_vertical(state):
+    """
+    Spiegelt oben <-> unten
+    Beispiel:
+    [[2, 4],
+     [8,16]]
+    ->
+    [[8,16],
+     [2, 4]]
+    """
+    return np.flipud(state).astype(int)
+
+
+def state_add_edge(state):
+    """
+    Edge-Operation:
+    Jede 0, die orthogonal (oben, unten, links, rechts)
+    an ein Nicht-Null-Feld angrenzt, wird zu 2.
+
+    Beispiel:
+    [[2, 0],
+     [0, 0]]
+    ->
+    [[2, 2],
+     [2, 0]]
+    """
+    rows, cols = state.shape
+    new_state = state.copy()
+
+    for r in range(rows):
+        for c in range(cols):
+            if state[r, c] != 0:
+                continue
+
+            neighbors = []
+
+            if r > 0:
+                neighbors.append(state[r - 1, c])  # oben
+            if r < rows - 1:
+                neighbors.append(state[r + 1, c])  # unten
+            if c > 0:
+                neighbors.append(state[r, c - 1])  # links
+            if c < cols - 1:
+                neighbors.append(state[r, c + 1])  # rechts
+
+            if any(value != 0 for value in neighbors):
+                new_state[r, c] = 2
+
+    return new_state.astype(int)
+
+
 def action_rotate(actions):
     """
     Rotiert die Aktionen passend zu np.rot90(state).
 
     Wenn der State 90° CCW rotiert wird, dann gilt:
-    original up    -> new left
-    original left  -> new down
-    original down  -> new right
-    original right -> new up
-
-    Also:
     new["up"]    = old["right"]
     new["left"]  = old["up"]
     new["down"]  = old["left"]
@@ -49,7 +107,40 @@ def action_rotate(actions):
 def action_double(actions):
     """
     Beim Verdoppeln des States ändern sich die Richtungen nicht.
-    Die Action-Namen bleiben also gleich.
+    """
+    return actions.copy()
+
+
+def action_mirror_horizontal(actions):
+    """
+    Spiegelung links <-> rechts:
+    up/down bleiben gleich, left/right werden getauscht.
+    """
+    return {
+        "up": actions["up"],
+        "down": actions["down"],
+        "left": actions["right"],
+        "right": actions["left"],
+    }
+
+
+def action_mirror_vertical(actions):
+    """
+    Spiegelung oben <-> unten:
+    left/right bleiben gleich, up/down werden getauscht.
+    """
+    return {
+        "up": actions["down"],
+        "down": actions["up"],
+        "left": actions["left"],
+        "right": actions["right"],
+    }
+
+
+def action_edge(actions):
+    """
+    Bei Edge ändert sich die Orientierung nicht,
+    daher bleiben die Actions gleich.
     """
     return actions.copy()
 
@@ -59,6 +150,9 @@ class PreCalculator:
         self.operations = {
             "r": (state_rotate, action_rotate),
             "d": (state_double, action_double),
+            "mh": (state_mirror_horizontal, action_mirror_horizontal),
+            "mv": (state_mirror_vertical, action_mirror_vertical),
+            #"e": (state_add_edge, action_edge),
         }
 
     def state_to_key(self, state):
@@ -120,8 +214,8 @@ class PreCalculator:
 
 def main():
     parent_state = np.array([
-        [2,4],
-        [2,2]
+        [2, 4],
+        [0, 2]
     ])
 
     actions = {
@@ -134,7 +228,7 @@ def main():
     q_table = [parent_state, actions]
 
     precalc = PreCalculator()
-    states = precalc.dig_deeper(q_table, max_depth=10)
+    states = precalc.dig_deeper(q_table, max_depth=3)
 
     for i, item in enumerate(states):
         print(f"State {i+1}/{len(states)}")

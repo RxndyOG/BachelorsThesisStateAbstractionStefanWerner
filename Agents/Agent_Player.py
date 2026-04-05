@@ -1,9 +1,10 @@
 import numpy as np
 import csv
 import os
+from datetime import datetime
 
 from Environment.Environment import Environment
-from Agents.ValueAgentBasic import Agent
+from Agents.Agent import Agent
 
 
 class PlayTester:
@@ -41,6 +42,11 @@ class PlayTester:
     def state_to_key(self, state):
         state_array = np.array(state, dtype=int)
         return tuple(state_array.flatten())
+
+    def state_to_string(self, state):
+        if state is None:
+            return ""
+        return ",".join(map(str, np.array(state, dtype=int).flatten()))
 
     def load_single_q_table_once(self):
         if self.single_q_table is not None:
@@ -280,25 +286,24 @@ class PlayTester:
         print("\n" + "-" * 60)
         print(f"STATISTICS: {stats['label']}")
         print("-" * 60)
-        print(f"Games played:         {stats['games']}")
-        print(f"Average reward:       {stats['avg_reward']:.4f}")
-        print(f"Min reward:           {stats['min_reward']:.4f}")
-        print(f"Max reward:           {stats['max_reward']:.4f}")
-        print(f"Average moves:        {stats['avg_moves']:.4f}")
-        print(f"Min moves:            {stats['min_moves']}")
-        print(f"Max moves:            {stats['max_moves']}")
-        print(f"Average highest tile: {stats['avg_highest_tile']:.4f}")
-        print(f"Max highest tile:     {stats['max_highest_tile']}")
-        print(f"Average max reached tile: {stats['avg_max_reached_tile']:.4f}")
-        print(f"Max reached tile:         {stats['max_reached_tile']}")
-        print(f"Reached tile 8:       {stats['reached_8']} times")
-        print(f"Reached tile 16:      {stats['reached_16']} times")
-        print(f"Reached tile 32:      {stats['reached_32']} times")
-        print(f"Reached tile 64:      {stats['reached_64']} times")
-        print(f"Reached tile 128:     {stats['reached_128']} times")
-        print(f"Reached tile 256:     {stats['reached_256']} times")
-        print(f"Reached tile 512:     {stats['reached_512']} times")
-        
+        print(f"Games played:              {stats['games']}")
+        print(f"Average reward:            {stats['avg_reward']:.4f}")
+        print(f"Min reward:                {stats['min_reward']:.4f}")
+        print(f"Max reward:                {stats['max_reward']:.4f}")
+        print(f"Average moves:             {stats['avg_moves']:.4f}")
+        print(f"Min moves:                 {stats['min_moves']}")
+        print(f"Max moves:                 {stats['max_moves']}")
+        print(f"Average highest tile:      {stats['avg_highest_tile']:.4f}")
+        print(f"Max highest tile:          {stats['max_highest_tile']}")
+        print(f"Average max reached tile:  {stats['avg_max_reached_tile']:.4f}")
+        print(f"Max reached tile:          {stats['max_reached_tile']}")
+        print(f"Reached tile 8:            {stats['reached_8']} times")
+        print(f"Reached tile 16:           {stats['reached_16']} times")
+        print(f"Reached tile 32:           {stats['reached_32']} times")
+        print(f"Reached tile 64:           {stats['reached_64']} times")
+        print(f"Reached tile 128:          {stats['reached_128']} times")
+        print(f"Reached tile 256:          {stats['reached_256']} times")
+        print(f"Reached tile 512:          {stats['reached_512']} times")
 
         print("Max reached state:")
         if stats["max_reached_state"] is not None:
@@ -306,7 +311,81 @@ class PlayTester:
         else:
             print("None")
 
-    def compare_both_multiple(self, runs=100, render_every=0):
+    def determine_better_model(self, single_stats, reconstructed_stats):
+        # Hauptkriterium: avg_reward
+        # Fallback: avg_highest_tile
+        # Fallback: avg_moves
+        if reconstructed_stats["avg_reward"] > single_stats["avg_reward"]:
+            return "Reconstructed"
+        if reconstructed_stats["avg_reward"] < single_stats["avg_reward"]:
+            return "Single"
+
+        if reconstructed_stats["avg_highest_tile"] > single_stats["avg_highest_tile"]:
+            return "Reconstructed"
+        if reconstructed_stats["avg_highest_tile"] < single_stats["avg_highest_tile"]:
+            return "Single"
+
+        if reconstructed_stats["avg_moves"] > single_stats["avg_moves"]:
+            return "Reconstructed"
+        if reconstructed_stats["avg_moves"] < single_stats["avg_moves"]:
+            return "Single"
+
+        return "Equal"
+
+    def append_comparison_to_csv(self, single_stats, reconstructed_stats, csv_name="playtest_results.csv"):
+        os.makedirs(self.filepath, exist_ok=True)
+        full_path = os.path.join(self.filepath, csv_name)
+
+        better_model = self.determine_better_model(single_stats, reconstructed_stats)
+
+        row = {
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "filename": self.filename,
+            "grid_size": self.grid_size,
+            "max_depth": self.max_depth,
+            "episodes_played": single_stats["games"],
+
+            "single_avg_reward": single_stats["avg_reward"],
+            "single_min_reward": single_stats["min_reward"],
+            "single_max_reward": single_stats["max_reward"],
+            "single_avg_moves": single_stats["avg_moves"],
+            "single_avg_highest_tile": single_stats["avg_highest_tile"],
+            "single_max_highest_tile": single_stats["max_highest_tile"],
+            "single_avg_max_reached_tile": single_stats["avg_max_reached_tile"],
+            "single_max_reached_tile": single_stats["max_reached_tile"],
+            "single_max_reached_state": self.state_to_string(single_stats["max_reached_state"]),
+
+            "reconstructed_avg_reward": reconstructed_stats["avg_reward"],
+            "reconstructed_min_reward": reconstructed_stats["min_reward"],
+            "reconstructed_max_reward": reconstructed_stats["max_reward"],
+            "reconstructed_avg_moves": reconstructed_stats["avg_moves"],
+            "reconstructed_avg_highest_tile": reconstructed_stats["avg_highest_tile"],
+            "reconstructed_max_highest_tile": reconstructed_stats["max_highest_tile"],
+            "reconstructed_avg_max_reached_tile": reconstructed_stats["avg_max_reached_tile"],
+            "reconstructed_max_reached_tile": reconstructed_stats["max_reached_tile"],
+            "reconstructed_max_reached_state": self.state_to_string(reconstructed_stats["max_reached_state"]),
+
+            "reward_diff_reconstructed_minus_single": reconstructed_stats["avg_reward"] - single_stats["avg_reward"],
+            "moves_diff_reconstructed_minus_single": reconstructed_stats["avg_moves"] - single_stats["avg_moves"],
+            "highest_tile_diff_reconstructed_minus_single": reconstructed_stats["avg_highest_tile"] - single_stats["avg_highest_tile"],
+
+            "better_model": better_model
+        }
+
+        fieldnames = list(row.keys())
+        file_exists = os.path.exists(full_path)
+
+        with open(full_path, "a", newline="", encoding="utf-8") as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames, delimiter=";")
+
+            if not file_exists:
+                writer.writeheader()
+
+            writer.writerow(row)
+
+        print(f"\nComparison appended to CSV: {full_path}")
+
+    def compare_both_multiple(self, runs=100, render_every=0, save_csv=True, csv_name="playtest_results.csv"):
         single_stats = self.run_multiple_single(runs=runs, render_every=render_every)
         reconstructed_stats = self.run_multiple_reconstructed(runs=runs, render_every=render_every)
 
@@ -320,22 +399,34 @@ class PlayTester:
         reward_diff = reconstructed_stats["avg_reward"] - single_stats["avg_reward"]
         moves_diff = reconstructed_stats["avg_moves"] - single_stats["avg_moves"]
         tile_diff = reconstructed_stats["avg_highest_tile"] - single_stats["avg_highest_tile"]
+        better_model = self.determine_better_model(single_stats, reconstructed_stats)
 
+        print(f"Episodes played:                 {runs}")
         print(f"Average reward difference:       {reward_diff:.4f}")
         print(f"Average moves difference:        {moves_diff:.4f}")
         print(f"Average highest tile difference: {tile_diff:.4f}")
+        print(f"Better model:                    {better_model}")
+
+        if save_csv:
+            self.append_comparison_to_csv(
+                single_stats=single_stats,
+                reconstructed_stats=reconstructed_stats,
+                csv_name=csv_name
+            )
 
         return single_stats, reconstructed_stats
 
-def play():
+
+def play(filepath="./Data/", filename="q_table", grid_size=2, max_depth=5, runs=1000, render_every=0, save_csv=True):
     tester = PlayTester(
-        filepath="./Data/",
-        filename="q_table_basic",
-        grid_size=4,
-        max_depth=5
+        filepath=filepath,
+        filename=filename,
+        grid_size=grid_size,
+        max_depth=max_depth
     )
 
-    tester.compare_both_multiple(runs=1000, render_every=0)
+    tester.compare_both_multiple(runs=runs, render_every=render_every, save_csv=save_csv)
+
 
 def main():
     tester = PlayTester(
@@ -345,7 +436,7 @@ def main():
         max_depth=5
     )
 
-    tester.compare_both_multiple(runs=1000, render_every=0)
+    tester.compare_both_multiple(runs=1000, render_every=0, save_csv=True)
 
 
 if __name__ == "__main__":
