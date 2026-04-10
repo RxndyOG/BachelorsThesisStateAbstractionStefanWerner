@@ -1,0 +1,18 @@
+TY  - CONF
+AU  - Kazemitabar, Seyed Jalal
+AU  - Beigy, Hamid
+ED  - Köppen, Mario
+ED  - Kasabov, Nikola
+ED  - Coghill, George
+PY  - 2009
+DA  - 2009//
+TI  - Automatic Discovery of Subgoals in Reinforcement Learning Using Strongly Connected Components
+BT  - Advances in Neuro-Information Processing
+SP  - 829
+EP  - 834
+PB  - Springer Berlin Heidelberg
+CY  - Berlin, Heidelberg
+AB  - The hierarchical structure of real-world problems has resulted in a focus on hierarchical frameworks in the reinforcement learning paradigm. Preparing mechanisms for automatic discovery of macro-actions has mainly concentrated on subgoal discovery methods. Among the proposed algorithms, those based on graph partitioning have achieved precise results. However, few methods have been shown to be successful both in performance and also efficiency in terms of time complexity of the algorithm. In this paper, we present a SCC-based subgoal discovery algorithm; a graph theoretic approach for automatic detection of subgoals in linear time. Meanwhile a parameter tuning method is proposed to find the only parameter of the method.
+SN  - 978-3-642-02490-0
+ID  - 10.1007/978-3-642-02490-0_101
+ER  - 

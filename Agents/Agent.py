@@ -947,7 +947,7 @@ def run_training(
 
     agent.load_q_table_single(filepath=filepath, filename=filename)
 
-    agent.load_q_table_reconstructed(filepath=filepath, filename=filename)
+    #agent.load_q_table_reconstructed(filepath=filepath, filename=filename)
 
     sorted_items = sorted(
         agent.q_table.items(),
