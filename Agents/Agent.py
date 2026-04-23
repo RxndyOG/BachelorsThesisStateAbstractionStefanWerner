@@ -863,19 +863,77 @@ class Agent:
         self.reconstructed_q_table = reconstructed
         return reconstructed
     
-    def load_q_table_reconstructed(self,filepath="./Data/", filename="q_table_basic"):
+    def load_q_table_parent_child(self, filepath=None, filename=None):
         """
-        Lädt die rekonstruierte Q-Table aus der entsprechenden CSV-Datei.
+        Lädt Parent- und Child-Q-Table aus CSV in p_dict und c_dict.
         """
-        
-        self.build_reconstructed_q_table()
-        
-        if not self.reconstructed_q_table:
-            raise ValueError("Reconstructed Q-Table is not built yet.")
+        if filepath is None:
+            filepath = self.filepath
+        if filename is None:
+            filename = self.filename
 
-        self.q_table = self.reconstructed_q_table 
-        
-        self.reconstructed_q_table = {}   
+        parent_path = os.path.join(filepath, f"{filename}_parent_{self.size}.csv")
+        child_path = os.path.join(filepath, f"{filename}_child_{self.size}.csv")
+
+        if not os.path.exists(parent_path):
+            raise FileNotFoundError(f"Parent Q-Table not found at: {parent_path}")
+        if not os.path.exists(child_path):
+            raise FileNotFoundError(f"Child Q-Table not found at: {child_path}")
+
+        self.p_dict = {}
+        self.c_dict = {}
+
+        with open(parent_path, "r", newline="", encoding="utf-8") as parent_file:
+            reader = csv.DictReader(parent_file, delimiter=";")
+
+            for row in reader:
+                parent_index = int(row["index"])
+                state_key = self.state_str_to_key(row["state"].strip())
+
+                self.p_dict[parent_index] = {
+                    "state": state_key,
+                    "up": float(row["up"]),
+                    "down": float(row["down"]),
+                    "left": float(row["left"]),
+                    "right": float(row["right"]),
+                }
+
+        with open(child_path, "r", newline="", encoding="utf-8") as child_file:
+            reader = csv.DictReader(child_file, delimiter=";")
+
+            for child_index, row in enumerate(reader):
+                self.c_dict[child_index] = {
+                    "parent_index": int(row["parent_index"]),
+                    "operations": row["operations"].strip(),
+                    "direction": int(row["direction"]),
+                }
+
+        print(f"Parent Q-Table loaded from: {parent_path}")
+        print(f"Child Q-Table loaded from: {child_path}")
+
+
+    def reconstruct_from_parent_child_to_q_table(self, filepath=None, filename=None):
+        """
+        Lädt Parent- und Child-CSV, rekonstruiert daraus die vollständige Q-Table
+        und setzt self.q_table auf die rekonstruierte Tabelle.
+        """
+        self.load_q_table_parent_child(filepath=filepath, filename=filename)
+        self.build_reconstructed_q_table()
+
+        if not self.reconstructed_q_table:
+            raise ValueError("Reconstructed Q-Table could not be built.")
+
+        self.q_table = dict(self.reconstructed_q_table)
+        self.reconstructed_q_table = {}
+
+        print("Reconstructed Q-Table loaded into agent.q_table")
+    
+    def load_q_table_reconstructed(self, filepath=None, filename=None):
+        """
+        Rekonstruiert die vollständige Q-Table aus Parent- und Child-Dateien
+        und lädt sie direkt in self.q_table.
+        """
+        self.reconstruct_from_parent_child_to_q_table(filepath=filepath, filename=filename)  
 
 def count_non_zero(state_str):
     """
@@ -945,7 +1003,7 @@ def run_training(
         size=grid_size,
     )
 
-    agent.load_q_table_single(filepath=filepath, filename=filename)
+    agent.load_q_table_reconstructed(filepath=filepath, filename=filename)
 
     #agent.load_q_table_reconstructed(filepath=filepath, filename=filename)
 
@@ -980,12 +1038,12 @@ def run_training(
         if (episode + 1) % 100 == 0:
             print(f"Episode {episode + 1} completed.")
 
-        if (episode + 1) % save_interval == 0:
-            agent.save_q_table_single()
+        #if (episode + 1) % save_interval == 0:
+           # agent.save_q_table_single()
 
-    agent.save_q_table_single()
+    #agent.save_q_table_single()
     agent.divide_q_table_chunked()
-    agent.save_q_table_reconstructed_chunked()
+    #agent.save_q_table_reconstructed_chunked()
 
 
 def main():
@@ -1012,7 +1070,7 @@ def main():
         size=grid_size,
     )
 
-    agent.load_q_table_single(filepath=filepath, filename=filename)
+    agent.load_q_table_reconstructed(filepath=filepath, filename=filename)
 
     for episode in range(episodes):
         state = env.reset()
