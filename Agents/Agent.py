@@ -1,12 +1,140 @@
 import csv
 import os
 import sqlite3
-
 import numpy as np
 
 from Bachelor.PreCalculator import PreCalculator
 from Environment.Environment import Environment
+import time
+import threading
+from datetime import datetime
 
+try:
+    import psutil
+except ImportError:
+    psutil = None
+
+class MemoryMonitor:
+    """
+    Misst den RAM-Verbrauch des aktuellen Python-Prozesses während eines Code-Abschnitts.
+    Benötigt psutil. Wenn psutil nicht installiert ist, bleiben die Werte None.
+    """
+
+    def __init__(self, interval=0.1):
+        self.interval = interval
+        self.running = False
+        self.thread = None
+        self.peak_mb = None
+        self.start_mb = None
+        self.end_mb = None
+
+    def _get_memory_mb(self):
+        if psutil is None:
+            return None
+
+        process = psutil.Process(os.getpid())
+        return process.memory_info().rss / (1024 * 1024)
+
+    def _watch(self):
+        while self.running:
+            current_mb = self._get_memory_mb()
+
+            if current_mb is not None:
+                if self.peak_mb is None or current_mb > self.peak_mb:
+                    self.peak_mb = current_mb
+
+            time.sleep(self.interval)
+
+    def start(self):
+        self.start_mb = self._get_memory_mb()
+        self.peak_mb = self.start_mb
+        self.running = True
+
+        if psutil is not None:
+            self.thread = threading.Thread(target=self._watch, daemon=True)
+            self.thread.start()
+
+    def stop(self):
+        self.running = False
+
+        if self.thread is not None:
+            self.thread.join()
+
+        self.end_mb = self._get_memory_mb()
+
+
+def measure_stage(stage_name, function_to_run):
+    """
+    Misst Laufzeit und RAM eines bestimmten Programmabschnitts.
+    """
+    monitor = MemoryMonitor()
+    monitor.start()
+
+    start_time = time.perf_counter()
+    function_to_run()
+    end_time = time.perf_counter()
+
+    monitor.stop()
+
+    duration_seconds = end_time - start_time
+
+    return {
+        "stage": stage_name,
+        "duration_seconds": duration_seconds,
+        "ram_start_mb": monitor.start_mb,
+        "ram_end_mb": monitor.end_mb,
+        "ram_peak_mb": monitor.peak_mb,
+    }
+
+
+def append_timing_results(filepath, filename, grid_size, episodes, max_depth, timing_rows):
+    """
+    Speichert die gemessenen Zeiten und RAM-Werte in eine CSV.
+    Die Datei wird erweitert und nicht überschrieben.
+    """
+    os.makedirs(filepath, exist_ok=True)
+
+    timing_path = os.path.join(
+        filepath,
+        f"{filename}_timing_results_{grid_size}.csv"
+    )
+
+    file_exists = os.path.exists(timing_path)
+
+    with open(timing_path, "a", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file, delimiter=";")
+
+        if not file_exists:
+            writer.writerow([
+                "timestamp",
+                "filename",
+                "grid_size",
+                "episodes",
+                "max_depth",
+                "stage",
+                "duration_seconds",
+                "ram_start_mb",
+                "ram_end_mb",
+                "ram_peak_mb",
+            ])
+
+        timestamp = datetime.now().isoformat(timespec="seconds")
+
+        for row in timing_rows:
+            writer.writerow([
+                timestamp,
+                filename,
+                grid_size,
+                episodes,
+                max_depth,
+                row["stage"],
+                row["duration_seconds"],
+                row["ram_start_mb"],
+                row["ram_end_mb"],
+                row["ram_peak_mb"],
+            ])
+
+    print(f"Timing results appended to: {timing_path}")
 
 class Agent:
     """
@@ -968,27 +1096,17 @@ def run_training(
     max_depth=5,
     save_interval=10,
 ):
-    
-    # this function is called by the main.py
-    # it loads the q-table, sorts it so the states with zero are on top and then trains on it
-    
-    # the environment is created with the grid size the user wants
-    
-    # then the agent is created. the user can determine what the parameters are in the main.py file 
-    
     """
-    Führt ein einfaches Training aus:
+    Führt Training aus und misst getrennt:
 
-    - lädt eine bestehende Single-Q-Table
-    - sortiert States
-    - trainiert über mehrere Episoden
-    - speichert regelmäßig
-    - erzeugt anschließend Parent-/Child- und rekonstruierte Dateien
+    1. Training ohne Speichern
+    2. Speichern der Single-Q-Table
+    3. Splitten in Parent-/Child-Q-Table
+    4. Rekonstruktion der Q-Table
 
-    Hinweis:
-    Der Parameter 'env' ist in dieser Funktion vorhanden, wird aber
-    wie im Original direkt durch ein neues Environment ersetzt.
+    Die Ergebnisse werden am Ende in eine CSV appended.
     """
+
     env = Environment(size=grid_size)
 
     agent = Agent(
@@ -1003,9 +1121,14 @@ def run_training(
         size=grid_size,
     )
 
-    agent.load_q_table_reconstructed(filepath=filepath, filename=filename)
-
-    #agent.load_q_table_reconstructed(filepath=filepath, filename=filename)
+    # Optional: bestehende rekonstruierte Q-Table laden.
+    # Diese Zeit wird NICHT gemessen, weil du nur Training/Speichern/Split/Reconstruct messen willst.
+    try:
+        agent.load_q_table_reconstructed(filepath=filepath, filename=filename)
+    except FileNotFoundError:
+        print("No parent/child Q-table found. Starting with empty Q-table.")
+    except ValueError:
+        print("Could not reconstruct Q-table. Starting with empty Q-table.")
 
     sorted_items = sorted(
         agent.q_table.items(),
@@ -1017,34 +1140,76 @@ def run_training(
 
     agent.q_table = dict(sorted_items)
 
-    for episode in range(episodes):
-        state = env.reset()
-        done = False
+    timing_rows = []
 
-        while not done:
-            actions = env.find_available_actions()
-            if not actions:
-                break
+    def training_only():
+        for episode in range(episodes):
+            state = env.reset()
+            done = False
 
-            action = agent.choose_action(state, actions)
-            next_state, reward, done, info = env.step(action)
-            next_actions = env.find_available_actions()
+            while not done:
+                actions = env.find_available_actions()
+                if not actions:
+                    break
 
-            agent.learn(state, action, reward, next_state, next_actions)
-            state = next_state
+                action = agent.choose_action(state, actions)
+                next_state, reward, done, info = env.step(action)
+                next_actions = env.find_available_actions()
 
-        agent.decay_epsilon()
+                agent.learn(state, action, reward, next_state, next_actions)
+                state = next_state
 
-        if (episode + 1) % 100 == 0:
-            print(f"Episode {episode + 1} completed.")
+            agent.decay_epsilon()
 
-        #if (episode + 1) % save_interval == 0:
-           # agent.save_q_table_single()
+            if (episode + 1) % 100 == 0:
+                print(f"Episode {episode + 1} completed.")
 
-    #agent.save_q_table_single()
-    agent.divide_q_table_chunked()
-    #agent.save_q_table_reconstructed_chunked()
+    timing_rows.append(
+        measure_stage(
+            "training_without_saving",
+            training_only,
+        )
+    )
 
+    timing_rows.append(
+        measure_stage(
+            "save_single_q_table",
+            lambda: agent.save_q_table_single(filepath=filepath, filename=filename),
+        )
+    )
+
+    timing_rows.append(
+        measure_stage(
+            "split_parent_child",
+            lambda: agent.divide_q_table_chunked(filepath=filepath, filename=filename),
+        )
+    )
+
+    timing_rows.append(
+        measure_stage(
+            "reconstruct_q_table",
+            lambda: agent.save_q_table_reconstructed_chunked(filepath=filepath, filename=filename),
+        )
+    )
+
+    append_timing_results(
+        filepath=filepath,
+        filename=filename,
+        grid_size=grid_size,
+        episodes=episodes,
+        max_depth=max_depth,
+        timing_rows=timing_rows,
+    )
+
+    print("\n----- TIMING RESULTS -----")
+    for row in timing_rows:
+        print(
+            f"{row['stage']}: "
+            f"{row['duration_seconds']:.4f}s, "
+            f"RAM start={row['ram_start_mb']}, "
+            f"RAM end={row['ram_end_mb']}, "
+            f"RAM peak={row['ram_peak_mb']}"
+        )
 
 def main():
     """

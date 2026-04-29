@@ -90,28 +90,23 @@ def main():
     parser_run.add_argument("--agent", "-a",
         choices=["value", "policy"],
         required=True,
-        help="Select the agent type"
-    )
+        help="Select the agent type")
     parser_run.add_argument("--grid", "-g",
         choices=["4", "3", "2"],
         required=True,
-        help="Select grid size"
-    )
+        help="Select grid size")
     parser_run.add_argument("--depth", "-d",
                             type=int, 
                             required=False, 
-                            help="Select MaxDepth"
-    )
+                            help="Select MaxDepth")
     parser_run.add_argument("--episodes", "-e",
                             type=int, 
                             required=False, 
-                            help="Number of episodes to run the training for"
-    )
+                            help="Number of episodes to run the training for")
     parser_run.add_argument("-f", "--file", "--File",
                             type=str,
                             required=False,
-                            help="Location where the Q-Table should be saved to filename"
-    )
+                            help="Location where the Q-Table should be saved to filename")
     parser_run.add_argument("--path", "-p", "--Path",
                             type=str,
                             required=False,
@@ -119,13 +114,11 @@ def main():
     parser_run.add_argument("--save", "-s",
                             type=int,
                             required=False,
-                            help="Save Interval"
-    )
+                            help="Save Interval")
     parser_run.add_argument("--updated", "-u",
                             choices=["False", "True"],
                             required=False,
-                            help="Use Updated Matrix Operation"
-    )
+                            help="Use Updated Matrix Operation")
 
     parser_run.set_defaults(func=run_train)
 
