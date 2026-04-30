@@ -36,8 +36,8 @@ def prepare_dataframe(path):
 def start_difference(filename, filepath="./Data/", grid_size=4, max_depth=5):
     os.makedirs(filepath, exist_ok=True)
 
-    reconstructed_path = f"{filepath}{filename}_reconstructed_{grid_size}.csv"
-    original_path = f"{filepath}{filename}_single_{grid_size}.csv"
+    reconstructed_path = f"{filepath}{filename}_reconstructed_{grid_size}_{max_depth}.csv"
+    original_path = f"{filepath}{filename}_single_{grid_size}_{max_depth}.csv"
 
     original_data = prepare_dataframe(original_path)
     reconstructed_data = prepare_dataframe(reconstructed_path)
@@ -217,7 +217,7 @@ def start_difference(filename, filepath="./Data/", grid_size=4, max_depth=5):
     # -----------------------------
     # CSV EXPORT APPEND
     # -----------------------------
-    result_prefix = f"{filepath}{filename}_difference_results_{grid_size}"
+    result_prefix = f"{filepath}{filename}_difference_results_{grid_size}_{max_depth}"
 
     summary_path = f"{result_prefix}_summary.csv"
     action_error_path = f"{result_prefix}_actions.csv"

@@ -361,7 +361,7 @@ class Agent:
             filename = self.filename
 
         os.makedirs(filepath, exist_ok=True)
-        full_path = os.path.join(filepath, f"{filename}_single_{self.size}.csv")
+        full_path = os.path.join(filepath, f"{filename}_single_{self.size}_{self.max_depth}.csv")
 
         with open(full_path, "w", newline="", encoding="utf-8") as file:
             writer = csv.writer(file, delimiter=";")
@@ -385,7 +385,7 @@ class Agent:
         if filename is None:
             filename = self.filename
 
-        full_path = os.path.join(filepath, f"{filename}_single_{self.size}.csv")
+        full_path = os.path.join(filepath, f"{filename}_single_{self.size}_{self.max_depth}.csv")
 
         if not os.path.exists(full_path):
             print(f"No Q-Table found at: {full_path}")
@@ -483,10 +483,10 @@ class Agent:
 
         os.makedirs(filepath, exist_ok=True)
 
-        single_path = os.path.join(filepath, f"{filename}_single_{self.size}.csv")
-        parent_path = os.path.join(filepath, f"{filename}_parent_{self.size}.csv")
-        child_path = os.path.join(filepath, f"{filename}_child_{self.size}.csv")
-        db_path = os.path.join(filepath, f"{filename}_reachable_index_{self.size}.sqlite")
+        single_path = os.path.join(filepath, f"{filename}_single_{self.size}_{self.max_depth}.csv")
+        parent_path = os.path.join(filepath, f"{filename}_parent_{self.size}_{self.max_depth}.csv")
+        child_path = os.path.join(filepath, f"{filename}_child_{self.size}_{self.max_depth}.csv")
+        db_path = os.path.join(filepath, f"{filename}_reachable_index_{self.size}_{self.max_depth}.sqlite")
 
         if not os.path.exists(single_path):
             raise FileNotFoundError(
@@ -525,7 +525,7 @@ class Agent:
             parent_writer = csv.writer(parent_file, delimiter=";")
             child_writer = csv.writer(child_file, delimiter=";")
 
-            parent_writer.writerow(["index", "state", "up", "down", "left", "right"])
+            parent_writer.writerow(["state", "up", "down", "left", "right"])
             child_writer.writerow(["parent_index", "operations", "direction"])
 
             for row_number, row in enumerate(reader, start=1):
@@ -559,7 +559,6 @@ class Agent:
                 else:
                     parent_writer.writerow(
                         [
-                            parent_index_counter,
                             state_str,
                             action_values[0],
                             action_values[1],
@@ -649,13 +648,12 @@ class Agent:
         parent_path = os.path.join(filepath, f"{filename}_parent_{self.size}.csv")
         with open(parent_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.writer(f, delimiter=";")
-            writer.writerow(["index", "state", "up", "down", "left", "right"])
+            writer.writerow(["state", "up", "down", "left", "right"])
 
             for index, data in self.p_dict.items():
                 state_str = self.state_key_to_str(data["state"])
                 writer.writerow(
                     [
-                        index,
                         state_str,
                         data["up"],
                         data["down"],
@@ -783,15 +781,15 @@ class Agent:
 
         os.makedirs(filepath, exist_ok=True)
 
-        parent_path = os.path.join(filepath, f"{filename}_parent_{self.size}.csv")
-        child_path = os.path.join(filepath, f"{filename}_child_{self.size}.csv")
+        parent_path = os.path.join(filepath, f"{filename}_parent_{self.size}_{self.max_depth}.csv")
+        child_path = os.path.join(filepath, f"{filename}_child_{self.size}_{self.max_depth}.csv")
         reconstructed_path = os.path.join(
             filepath,
-            f"{filename}_reconstructed_{self.size}.csv",
+            f"{filename}_reconstructed_{self.size}_{self.max_depth}.csv",
         )
         parent_db_path = os.path.join(
             filepath,
-            f"{filename}_parent_lookup_{self.size}.sqlite",
+            f"{filename}_parent_lookup_{self.size}_{self.max_depth}.sqlite",
         )
 
         if not os.path.exists(parent_path):
@@ -822,10 +820,10 @@ class Agent:
             reader = csv.DictReader(parent_file, delimiter=";")
             batch = []
 
-            for row in reader:
+            for parent_index, row in enumerate(reader):
                 batch.append(
                     (
-                        int(row["index"]),
+                        parent_index,
                         row["state"].strip(),
                         float(row["up"]),
                         float(row["down"]),
@@ -1000,8 +998,8 @@ class Agent:
         if filename is None:
             filename = self.filename
 
-        parent_path = os.path.join(filepath, f"{filename}_parent_{self.size}.csv")
-        child_path = os.path.join(filepath, f"{filename}_child_{self.size}.csv")
+        parent_path = os.path.join(filepath, f"{filename}_parent_{self.size}_{self.max_depth}.csv")
+        child_path = os.path.join(filepath, f"{filename}_child_{self.size}_{self.max_depth}.csv")
 
         if not os.path.exists(parent_path):
             raise FileNotFoundError(f"Parent Q-Table not found at: {parent_path}")
@@ -1014,8 +1012,7 @@ class Agent:
         with open(parent_path, "r", newline="", encoding="utf-8") as parent_file:
             reader = csv.DictReader(parent_file, delimiter=";")
 
-            for row in reader:
-                parent_index = int(row["index"])
+            for parent_index, row in enumerate(reader):
                 state_key = self.state_str_to_key(row["state"].strip())
 
                 self.p_dict[parent_index] = {
