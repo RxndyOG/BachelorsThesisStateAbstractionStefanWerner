@@ -3,8 +3,7 @@ from collections import deque
 
 
 def state_rotate(state):
-    return np.rot90(state)   # 90° gegen den Uhrzeigersinn
-
+    return np.rot90(state)   
 
 def state_rotate_back(state):
     return np.rot90(state, k=-1)
@@ -87,15 +86,6 @@ def state_add_edge(state):
 
 
 def action_rotate(actions):
-    """
-    Rotiert die Aktionen passend zu np.rot90(state).
-
-    Wenn der State 90° CCW rotiert wird, dann gilt:
-    new["up"]    = old["right"]
-    new["left"]  = old["up"]
-    new["down"]  = old["left"]
-    new["right"] = old["down"]
-    """
     return {
         "up": actions["right"],
         "down": actions["left"],

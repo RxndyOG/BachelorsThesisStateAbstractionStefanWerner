@@ -9,7 +9,7 @@ def user_play_wrapper(args):
     user_play(size=int(args.grid_size))
 
 def difference(args):
-    check_differences(filename=args.filename, filepath=args.filepath, grid_size=int(args.grid_size))
+    check_differences(filename=args.filename, filepath=args.filepath, grid_size=int(args.grid_size), max_depth=int(args.max_depth)  )
 
 def run_play(args):
     play(filename=args.filename, filepath=args.filepath, grid_size=int(args.grid_size),max_depth=int(args.max_depth), runs=1000, render_every=0, save_csv=True)
