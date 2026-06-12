@@ -1,0 +1,175 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36" version="29.6.0">
+  <diagram name="Seite-1" id="j_ooj5M96DvCZE69SeUY">
+    <mxGraphModel dx="1418" dy="746" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-26" parent="1" style="swimlane;whiteSpace=wrap;html=1;movable=1;resizable=1;rotatable=1;deletable=1;editable=1;locked=0;connectable=1;strokeWidth=4;" value="Algorithm" vertex="1">
+          <mxGeometry height="390" width="840" x="10" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-27" parent="P3t-4Sw6ZEDwQydlOTrg-26" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;Repeat Training Step e Times&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="200" x="340" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-28" parent="P3t-4Sw6ZEDwQydlOTrg-26" style="swimlane;whiteSpace=wrap;html=1;" value="Saving" vertex="1">
+          <mxGeometry height="130" width="170" x="660" y="90" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-29" parent="P3t-4Sw6ZEDwQydlOTrg-28" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;Saving the parent and child tables as seperate files&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="90" width="150" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-32" parent="P3t-4Sw6ZEDwQydlOTrg-26" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;Save Tables&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="90" x="560" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-34" edge="1" parent="P3t-4Sw6ZEDwQydlOTrg-26" source="P3t-4Sw6ZEDwQydlOTrg-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="590" y="165" />
+              <mxPoint x="590" y="350" />
+              <mxPoint x="310" y="350" />
+            </Array>
+            <mxPoint x="310" y="300" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-4" parent="P3t-4Sw6ZEDwQydlOTrg-26" style="swimlane;whiteSpace=wrap;html=1;startSize=40;" value="Training Step" vertex="1">
+          <mxGeometry height="270" width="550" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-19" edge="1" parent="P3t-4Sw6ZEDwQydlOTrg-4" source="P3t-4Sw6ZEDwQydlOTrg-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=5;" target="P3t-4Sw6ZEDwQydlOTrg-13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-10" parent="P3t-4Sw6ZEDwQydlOTrg-4" style="swimlane;whiteSpace=wrap;html=1;" value="Training" vertex="1">
+          <mxGeometry height="130" width="170" x="40" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-15" edge="1" parent="P3t-4Sw6ZEDwQydlOTrg-10" source="P3t-4Sw6ZEDwQydlOTrg-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=5;exitX=0;exitY=0.5;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="-20" y="65" />
+              <mxPoint x="-20" y="170" />
+              <mxPoint x="100" y="170" />
+            </Array>
+            <mxPoint x="100" y="130" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-17" connectable="0" parent="P3t-4Sw6ZEDwQydlOTrg-15" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;Repeating n Times&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry relative="1" x="0.2912" y="-1" as="geometry">
+            <mxPoint y="9" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-11" parent="P3t-4Sw6ZEDwQydlOTrg-10" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;Normal RL, saving each state-action pair in a normal Q-table&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="90" width="150" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-22" edge="1" parent="P3t-4Sw6ZEDwQydlOTrg-4" source="P3t-4Sw6ZEDwQydlOTrg-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=5;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="445" y="230" />
+              <mxPoint x="190" y="230" />
+            </Array>
+            <mxPoint x="190" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-13" parent="P3t-4Sw6ZEDwQydlOTrg-4" style="swimlane;whiteSpace=wrap;html=1;" value="Splitting" vertex="1">
+          <mxGeometry height="130" width="170" x="360" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-14" parent="P3t-4Sw6ZEDwQydlOTrg-13" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;Splitting the normal Q-table into parent and child&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="90" width="150" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-23" parent="P3t-4Sw6ZEDwQydlOTrg-4" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 14px;&quot;&gt;Train on split tables&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="140" x="240" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-20" parent="P3t-4Sw6ZEDwQydlOTrg-4" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;After X Repeates&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="60" x="250" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-31" edge="1" parent="P3t-4Sw6ZEDwQydlOTrg-26" source="P3t-4Sw6ZEDwQydlOTrg-13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=4;" target="P3t-4Sw6ZEDwQydlOTrg-28">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-35" parent="1" style="swimlane;whiteSpace=wrap;html=1;strokeWidth=4;" value="Evaluation Step" vertex="1">
+          <mxGeometry height="220" width="500" x="220" y="460" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-43" edge="1" parent="P3t-4Sw6ZEDwQydlOTrg-35" source="P3t-4Sw6ZEDwQydlOTrg-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=5;" target="P3t-4Sw6ZEDwQydlOTrg-40">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-38" parent="P3t-4Sw6ZEDwQydlOTrg-35" style="swimlane;whiteSpace=wrap;html=1;" value="Reconstruction" vertex="1">
+          <mxGeometry height="160" width="170" x="50" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-39" parent="P3t-4Sw6ZEDwQydlOTrg-38" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;Reconstruct the parent and child tables in reverse order using the splitting algorithm in reverse&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="120" width="150" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-40" parent="P3t-4Sw6ZEDwQydlOTrg-35" style="swimlane;whiteSpace=wrap;html=1;" value="Comparison" vertex="1">
+          <mxGeometry height="160" width="170" x="290" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-41" parent="P3t-4Sw6ZEDwQydlOTrg-40" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;Compare reconstructed Q-table with normal Q-table&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="120" width="150" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-47" edge="1" parent="1" source="P3t-4Sw6ZEDwQydlOTrg-45" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=5;" target="P3t-4Sw6ZEDwQydlOTrg-38">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-45" parent="1" style="swimlane;whiteSpace=wrap;html=1;" value="Saved" vertex="1">
+          <mxGeometry height="30" width="70" x="120" y="565" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-48" parent="1" style="swimlane;whiteSpace=wrap;html=1;strokeWidth=5;" value="Recosntruction" vertex="1">
+          <mxGeometry height="400" width="740" x="210" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-57" edge="1" parent="P3t-4Sw6ZEDwQydlOTrg-48" source="P3t-4Sw6ZEDwQydlOTrg-50" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=5;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="250" y="85" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-50" parent="P3t-4Sw6ZEDwQydlOTrg-48" style="swimlane;whiteSpace=wrap;html=1;" value="Append parent" vertex="1">
+          <mxGeometry height="90" width="170" x="10" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-51" parent="P3t-4Sw6ZEDwQydlOTrg-50" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;Append parents to new Q-table&amp;nbsp;&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="60" width="150" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-59" edge="1" parent="P3t-4Sw6ZEDwQydlOTrg-48" source="P3t-4Sw6ZEDwQydlOTrg-54" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=5;entryX=0;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="P3t-4Sw6ZEDwQydlOTrg-54">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="360" y="230" />
+              <mxPoint x="250" y="230" />
+            </Array>
+            <mxPoint x="280" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-63" edge="1" parent="P3t-4Sw6ZEDwQydlOTrg-48" source="P3t-4Sw6ZEDwQydlOTrg-54" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=5;" target="P3t-4Sw6ZEDwQydlOTrg-61">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="415" y="315" />
+            </Array>
+            <mxPoint x="380" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-68" edge="1" parent="P3t-4Sw6ZEDwQydlOTrg-48" source="P3t-4Sw6ZEDwQydlOTrg-54" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=5;" target="P3t-4Sw6ZEDwQydlOTrg-66" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-54" parent="P3t-4Sw6ZEDwQydlOTrg-48" style="swimlane;whiteSpace=wrap;html=1;" value="Reconstruct child" vertex="1">
+          <mxGeometry height="150" width="220" x="250" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-55" parent="P3t-4Sw6ZEDwQydlOTrg-54" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;Search for parent indexes in new Q-table, if found apply operational sequence on parent and save result as state and action pair&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="110" width="200" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-60" parent="P3t-4Sw6ZEDwQydlOTrg-48" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;Repeat for each child&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="170" x="220" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-65" edge="1" parent="P3t-4Sw6ZEDwQydlOTrg-48" source="P3t-4Sw6ZEDwQydlOTrg-61" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.75;entryDx=0;entryDy=0;strokeWidth=5;" target="P3t-4Sw6ZEDwQydlOTrg-54">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="110" y="153" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-61" parent="P3t-4Sw6ZEDwQydlOTrg-48" style="swimlane;whiteSpace=wrap;html=1;" value="Apply best direction" vertex="1">
+          <mxGeometry height="90" width="170" x="30" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-62" parent="P3t-4Sw6ZEDwQydlOTrg-61" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;Force the best direction&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="60" width="150" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-66" parent="P3t-4Sw6ZEDwQydlOTrg-48" style="swimlane;whiteSpace=wrap;html=1;" value="Append child" vertex="1">
+          <mxGeometry height="100" width="180" x="520" y="65" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-67" parent="P3t-4Sw6ZEDwQydlOTrg-66" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;Append child to new Q-table&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="70" width="160" x="10" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="P3t-4Sw6ZEDwQydlOTrg-64" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;&lt;font style=&quot;font-size: 15px;&quot;&gt;IF best direction of child and new best direction dont overlap&lt;/font&gt;&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="280" x="450" y="1070" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
